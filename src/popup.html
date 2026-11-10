@@ -1,0 +1,161 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <img id="favicon" alt="" />
+      <div class="tab-info">
+        <div id="tab-title" class="ellipsis">…</div>
+        <div id="status" class="status">Original audio</div>
+      </div>
+    </header>
+
+    <div id="error" class="error" hidden></div>
+
+    <section class="volume">
+      <div class="readout">
+        <span id="vol-text" class="vol-text">100.0%</span>
+        <span id="vol-db" class="db">0.0 dB</span>
+        <button id="mute" class="icon-btn" title="Mute (M)" aria-label="Mute" aria-pressed="false"></button>
+      </div>
+      <input id="vol" type="range" min="0" max="200" step="0.1" aria-label="Volume" />
+      <div class="row">
+        <div class="presets">
+          <button data-vol="25">25</button>
+          <button data-vol="50">50</button>
+          <button data-vol="100">100</button>
+          <button data-vol="150">150</button>
+          <button data-vol="200">200</button>
+        </div>
+        <label class="small">
+          Max
+          <select id="max-vol">
+            <option value="100">100%</option>
+            <option value="200">200%</option>
+            <option value="300">300%</option>
+            <option value="500">500%</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <section class="row channel-row">
+      <label class="field">
+        <span class="label">Stereo mode</span>
+        <select id="channel-mode">
+          <option value="stereo">Stereo</option>
+          <option value="mono">Mono (L+R)</option>
+          <option value="left">Left only</option>
+          <option value="right">Right only</option>
+          <option value="swap">Swap L ↔ R</option>
+        </select>
+      </label>
+      <div class="knob-wrap">
+        <div
+          id="pan"
+          class="knob"
+          role="slider"
+          tabindex="0"
+          aria-label="Balance"
+          aria-valuemin="-100"
+          aria-valuemax="100"
+          aria-valuenow="0"
+          title="Drag up/down or scroll · double-click to center"
+        >
+          <div class="knob-dial"></div>
+        </div>
+        <div>
+          <div class="label">Balance</div>
+          <div id="pan-label" class="small">Center</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="comp">
+      <div class="row">
+        <div class="comp-head">
+          <span class="label">Compressor</span>
+          <button id="comp-on" class="toggle-btn" aria-pressed="false">Off</button>
+        </div>
+        <span id="comp-gr" class="small" title="Gain reduction: how much the compressor is turning things down right now">GR —</span>
+      </div>
+      <div class="comp-body" id="comp-body">
+        <div class="param">
+          <span class="small">Ratio</span>
+          <div
+            id="comp-ratio"
+            class="stepper"
+            role="slider"
+            tabindex="0"
+            aria-label="Compressor ratio"
+            aria-valuemin="2"
+            aria-valuemax="10"
+            title="Click or drag · arrow keys"
+          ></div>
+          <span id="comp-ratio-val" class="small val">4:1</span>
+        </div>
+        <div class="param">
+          <span class="small">Threshold</span>
+          <input id="comp-threshold" type="range" min="-60" max="0" step="0.5" aria-label="Compressor threshold" />
+          <span id="comp-threshold-val" class="small val">-24.0 dB</span>
+        </div>
+        <div class="param">
+          <span class="small">Makeup</span>
+          <input id="comp-makeup" type="range" min="0" max="24" step="0.5" aria-label="Makeup gain" />
+          <span id="comp-makeup-val" class="small val">+0.0 dB</span>
+        </div>
+        <div class="param">
+          <span></span>
+          <span></span>
+          <button id="comp-auto" class="toggle-btn mini" aria-pressed="true" title="Set makeup gain automatically from threshold and ratio">Auto</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="tone">
+      <div class="joined" role="group" aria-label="Filters">
+        <button id="low-cut" class="toggle-btn" aria-pressed="false" title="Cut everything below 100 Hz (rumble, boom)">Low Filter</button>
+        <button id="high-cut" class="toggle-btn" aria-pressed="false" title="Cut everything above 13 kHz (hiss, harshness)">High Filter</button>
+      </div>
+      <div class="pair">
+        <button id="dc" class="toggle-btn" aria-pressed="false" title="Removes a constant (0 Hz) offset from the waveform with a 10 Hz high-pass filter">DC offset</button>
+        <button id="limiter" class="toggle-btn" aria-pressed="false" title="Prevents clipping/distortion when boosting above 100%">Limiter</button>
+      </div>
+    </section>
+
+    <section class="meters">
+      <div class="meter"><span>L</span><div class="bar"><div id="meter-l"></div></div></div>
+      <div class="meter"><span>R</span><div class="bar"><div id="meter-r"></div></div></div>
+      <div id="latency" class="small">Latency: —</div>
+    </section>
+
+    <section class="actions">
+      <button id="reset" class="with-icon" title="Put every setting back to default (keeps adjusting this tab)"></button>
+      <button id="restore" class="with-icon" hidden title="Stop processing and let the browser play this tab normally"></button>
+    </section>
+
+    <section id="others-section" hidden>
+      <div class="label">Other tabs with audio</div>
+      <ul id="others"></ul>
+    </section>
+
+    <details class="shortcuts">
+      <summary id="shortcuts-summary">Shortcuts</summary>
+      <dl>
+        <dt>Volume slider</dt>
+        <dd>Arrows ±1 · Shift+arrows ±0.1 · PgUp/PgDn ±10 · scroll wheel</dd>
+        <dt>Balance knob</dt>
+        <dd>Drag up/down or scroll · Shift = fine · double-click or Home to center</dd>
+        <dt>Mute</dt>
+        <dd>M</dd>
+      </dl>
+      <button id="global-shortcuts" class="link-btn">Set browser-wide shortcuts…</button>
+    </details>
+
+    <script src="popup.js" type="module"></script>
+  </body>
+</html>

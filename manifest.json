@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "Volume Remaster",
+  "version": "0.1.0",
+  "description": "Per-tab volume with fine control, boost, mono/L/R, balance, compressor, limiter, DC offset filter and latency readout.",
+  "minimum_chrome_version": "116",
+  "permissions": ["tabCapture", "offscreen", "storage", "tabs"],
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_title": "Volume Remaster",
+    "default_popup": "src/popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png"
+    }
+  },
+  "commands": {
+    "toggle-mute": {
+      "description": "Mute / unmute the current tab (if adjusted)"
+    },
+    "release-tab": {
+      "description": "Restore the current tab's original audio"
+    }
+  }
+}

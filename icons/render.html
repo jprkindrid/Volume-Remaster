@@ -1,0 +1,65 @@
+<!doctype html>
+<!--
+  Icon renderer: open this file in Edge/Chrome, pick icons/icon.svg, and save the
+  four PNGs next to it (icon-16/32/48/128.png). Each size is a native vector
+  render onto a canvas, not a downscale. Needs the logo's font (Asmath) installed.
+  (The file picker is needed because browsers won't let a local page read
+  another local file into a canvas on its own.)
+-->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Volume Remaster icon renderer</title>
+    <style>
+      body { font: 14px system-ui, sans-serif; margin: 24px; background: #2b2c2f; color: #ddd; }
+      .row { display: flex; gap: 24px; align-items: end; margin-top: 16px; }
+      figure { margin: 0; text-align: center; }
+      a { color: #e8913a; display: block; margin-top: 6px; }
+    </style>
+  </head>
+  <body>
+    <label>Pick <code>icons/icon.svg</code>: <input id="file" type="file" accept=".svg,image/svg+xml" /></label>
+    <div id="row" class="row"></div>
+    <script>
+      const SIZES = [16, 32, 48, 128];
+
+      // Renders an SVG data URL to PNG data URLs at each size.
+      // Exposed on window so it can also be driven from devtools/automation.
+      window.renderIcons = (svgDataUrl) =>
+        new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => {
+            const out = {};
+            for (const size of SIZES) {
+              const c = document.createElement('canvas');
+              c.width = c.height = size;
+              c.getContext('2d').drawImage(img, 0, 0, size, size);
+              out[size] = c.toDataURL('image/png');
+            }
+            resolve(out);
+          };
+          img.onerror = () => reject(new Error('Could not load SVG'));
+          img.src = svgDataUrl;
+        });
+
+      document.getElementById('file').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const dataUrl = await new Promise((r) => {
+          const fr = new FileReader();
+          fr.onload = () => r(fr.result);
+          fr.readAsDataURL(file);
+        });
+        await document.fonts.ready; // make sure local fonts are available
+        const pngs = await renderIcons(dataUrl);
+        const row = document.getElementById('row');
+        row.replaceChildren();
+        for (const size of SIZES) {
+          const fig = document.createElement('figure');
+          fig.innerHTML = `<img src="${pngs[size]}" width="${size}" height="${size}"><a download="icon-${size}.png" href="${pngs[size]}">icon-${size}.png</a>`;
+          row.append(fig);
+        }
+      });
+    </script>
+  </body>
+</html>
